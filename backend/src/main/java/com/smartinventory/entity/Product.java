@@ -4,6 +4,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
@@ -14,17 +18,25 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    @NotBlank(message = "Product name is required")
+private String name;
 
-    private String sku;
+@NotBlank(message = "SKU is required")
+private String sku;
 
     private String description;
 
-    private Integer quantity;
+    @NotNull(message = "Quantity is required")
+@Min(value = 0, message = "Quantity cannot be negative")
+private Integer quantity;
 
-    private BigDecimal price;
+@NotNull(message = "Price is required")
+@DecimalMin(value = "0.0", inclusive = true, message = "Price cannot be negative")
+private BigDecimal price;
 
-    private Integer reorderLevel;
+@NotNull(message = "Reorder level is required")
+@Min(value = 0, message = "Reorder level cannot be negative")
+private Integer reorderLevel;
 
     private String warehouse;
 

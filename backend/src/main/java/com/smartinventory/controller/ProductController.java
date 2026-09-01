@@ -7,6 +7,7 @@ import com.smartinventory.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.util.List;
 
 @RestController
@@ -36,17 +37,17 @@ public class ProductController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Product createProduct(@RequestBody Product product) {
-        return productService.createProduct(product);
-    }
+@ResponseStatus(HttpStatus.CREATED)
+public Product createProduct(@Valid @RequestBody Product product) {
+    return productService.createProduct(product);
+}
 
     @PutMapping("/{id}")
-    public Product updateProduct(
-            @PathVariable Long id,
-            @RequestBody Product product) {
-        return productService.updateProduct(id, product);
-    }
+public Product updateProduct(
+        @PathVariable Long id,
+        @Valid @RequestBody Product product) {
+    return productService.updateProduct(id, product);
+}
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

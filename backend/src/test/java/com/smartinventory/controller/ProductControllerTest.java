@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -207,5 +208,77 @@ void receiveStock_shouldReturnBadRequestWhenQuantityIsNegative()
             .andExpect(jsonPath("$.error").value("Bad Request"))
             .andExpect(jsonPath("$.message")
                     .value("Quantity must be at least 1"));
+}
+
+@Test
+void createProduct_shouldReturnBadRequestWhenNameIsBlank()
+        throws Exception {
+
+    mockMvc.perform(
+                    post("/api/products")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                    {
+                        "name": "",
+                        "sku": "LAP-10002",
+                        "quantity": 10,
+                        "price": 899.99,
+                        "reorderLevel": 5
+                    }
+                    """)
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Bad Request"))
+            .andExpect(jsonPath("$.message")
+                    .value("Product name is required"));
+}
+
+@Test
+void createProduct_shouldReturnBadRequestWhenPriceIsNegative()
+        throws Exception {
+
+    mockMvc.perform(
+                    post("/api/products")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                    {
+                        "name": "Dell Latitude 5450",
+                        "sku": "LAP-10002",
+                        "quantity": 10,
+                        "price": -100.00,
+                        "reorderLevel": 5
+                    }
+                    """)
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Bad Request"))
+            .andExpect(jsonPath("$.message")
+                    .value("Price cannot be negative"));
+}
+
+@Test
+void updateProduct_shouldReturnBadRequestWhenQuantityIsNegative()
+        throws Exception {
+
+    mockMvc.perform(
+                    put("/api/products/2")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                    {
+                        "name": "Dell Latitude 5440",
+                        "sku": "LAP-10001",
+                        "quantity": -5,
+                        "price": 899.99,
+                        "reorderLevel": 5
+                    }
+                    """)
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Bad Request"))
+            .andExpect(jsonPath("$.message")
+                    .value("Quantity cannot be negative"));
 }
 }
