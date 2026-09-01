@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -219,5 +220,27 @@ void issueStock_shouldRejectNegativeQuantity() {
 
     verify(productRepository, never()).save(any(Product.class));
     verify(stockMovementRepository, never()).save(any(StockMovement.class));
+}
+@Test
+void issueStock_shouldAllowIssuingEntireAvailableStock() {
+    Product product = new Product();
+    product.setId(2L);
+    product.setQuantity(10);
+
+    StockRequest request = new StockRequest();
+    request.setQuantity(10);
+
+    when(productRepository.findById(2L))
+            .thenReturn(Optional.of(product));
+
+    when(productRepository.save(product))
+            .thenReturn(product);
+
+    Product result = productService.issueStock(2L, request);
+
+    assertEquals(0, result.getQuantity());
+
+    verify(productRepository).save(product);
+    verify(stockMovementRepository).save(any(StockMovement.class));
 }
 }
