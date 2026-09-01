@@ -1,5 +1,5 @@
 package com.smartinventory.controller;
-
+import jakarta.validation.Valid;
 import com.smartinventory.dto.StockRequest;
 import com.smartinventory.entity.Product;
 import com.smartinventory.entity.StockMovement;
@@ -57,14 +57,14 @@ public class ProductController {
     @PostMapping("/{id}/stock/receive")
     public Product receiveStock(
             @PathVariable Long id,
-            @RequestBody StockRequest request) {
+            @Valid @RequestBody StockRequest request) {
         return productService.receiveStock(id, request);
     }
 
     @PostMapping("/{id}/stock/issue")
     public Product issueStock(
             @PathVariable Long id,
-            @RequestBody StockRequest request) {
+            @Valid @RequestBody StockRequest request) {
         return productService.issueStock(id, request);
     }
     @GetMapping("/{id}/movements")

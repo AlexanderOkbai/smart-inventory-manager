@@ -169,5 +169,43 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.message")
                         .value("Insufficient stock. Available: 18, requested: 999"));
     }
+@Test
+void issueStock_shouldReturnBadRequestWhenQuantityIsZero()
+        throws Exception {
 
+    mockMvc.perform(
+                    post("/api/products/2/stock/issue")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                    {
+                        "quantity": 0
+                    }
+                    """)
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Bad Request"))
+            .andExpect(jsonPath("$.message")
+                    .value("Quantity must be at least 1"));
+}
+
+@Test
+void receiveStock_shouldReturnBadRequestWhenQuantityIsNegative()
+        throws Exception {
+
+    mockMvc.perform(
+                    post("/api/products/2/stock/receive")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                    {
+                        "quantity": -5
+                    }
+                    """)
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Bad Request"))
+            .andExpect(jsonPath("$.message")
+                    .value("Quantity must be at least 1"));
+}
 }
