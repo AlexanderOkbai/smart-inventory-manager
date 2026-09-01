@@ -40,50 +40,51 @@ public class ProductService {
     }
 
     public Product createProduct(Product product) {
-    if (productRepository.existsBySku(product.getSku())) {
-        throw new IllegalArgumentException(
-                "Product with SKU already exists: " + product.getSku()
-        );
-    }
+        if (productRepository.existsBySku(product.getSku())) {
+            throw new IllegalArgumentException(
+                    "Product with SKU already exists: " + product.getSku()
+            );
+        }
 
-    return productRepository.save(product);
-}
+        return productRepository.save(product);
+    }
 
     public Product updateProduct(Long id, Product updatedProduct) {
-    Product existingProduct = getProductById(id);
+        Product existingProduct = getProductById(id);
 
-    if (productRepository.existsBySkuAndIdNot(
-            updatedProduct.getSku(), id)) {
-        throw new IllegalArgumentException(
-                "Product with SKU already exists: "
-                        + updatedProduct.getSku()
-        );
+        if (productRepository.existsBySkuAndIdNot(
+                updatedProduct.getSku(), id)) {
+
+            throw new IllegalArgumentException(
+                    "Product with SKU already exists: "
+                            + updatedProduct.getSku()
+            );
+        }
+
+        existingProduct.setName(updatedProduct.getName());
+        existingProduct.setSku(updatedProduct.getSku());
+        existingProduct.setDescription(updatedProduct.getDescription());
+        existingProduct.setQuantity(updatedProduct.getQuantity());
+        existingProduct.setPrice(updatedProduct.getPrice());
+        existingProduct.setReorderLevel(updatedProduct.getReorderLevel());
+
+        existingProduct.setWarehouse(updatedProduct.getWarehouse());
+        existingProduct.setZone(updatedProduct.getZone());
+        existingProduct.setAisle(updatedProduct.getAisle());
+        existingProduct.setRack(updatedProduct.getRack());
+        existingProduct.setShelf(updatedProduct.getShelf());
+        existingProduct.setBin(updatedProduct.getBin());
+
+        return productRepository.save(existingProduct);
     }
-
-    existingProduct.setName(updatedProduct.getName());
-    existingProduct.setSku(updatedProduct.getSku());
-    existingProduct.setDescription(updatedProduct.getDescription());
-    existingProduct.setQuantity(updatedProduct.getQuantity());
-    existingProduct.setPrice(updatedProduct.getPrice());
-    existingProduct.setReorderLevel(updatedProduct.getReorderLevel());
-
-    existingProduct.setWarehouse(updatedProduct.getWarehouse());
-    existingProduct.setZone(updatedProduct.getZone());
-    existingProduct.setAisle(updatedProduct.getAisle());
-    existingProduct.setRack(updatedProduct.getRack());
-    existingProduct.setShelf(updatedProduct.getShelf());
-    existingProduct.setBin(updatedProduct.getBin());
-
-    return productRepository.save(existingProduct);
-}
 
     public void deleteProduct(Long id) {
         Product existingProduct = getProductById(id);
         productRepository.delete(existingProduct);
     }
 
-   @Transactional
-public Product receiveStock(Long id, StockRequest request) {
+    @Transactional
+    public Product receiveStock(Long id, StockRequest request) {
         Product product = getProductById(id);
 
         if (request.getQuantity() == null || request.getQuantity() <= 0) {
@@ -108,6 +109,7 @@ public Product receiveStock(Long id, StockRequest request) {
 
         return savedProduct;
     }
+
     @Transactional
     public Product issueStock(Long id, StockRequest request) {
         Product product = getProductById(id);
@@ -143,10 +145,11 @@ public Product receiveStock(Long id, StockRequest request) {
 
         return savedProduct;
     }
-    public List<StockMovement> getStockMovements(Long productId) {
-    getProductById(productId);
 
-    return stockMovementRepository
-            .findByProductIdOrderByCreatedAtDesc(productId);
-}
+    public List<StockMovement> getStockMovements(Long productId) {
+        getProductById(productId);
+
+        return stockMovementRepository
+                .findByProductIdOrderByCreatedAtDesc(productId);
+    }
 }
