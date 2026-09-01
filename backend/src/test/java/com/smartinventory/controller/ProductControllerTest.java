@@ -281,4 +281,33 @@ void updateProduct_shouldReturnBadRequestWhenQuantityIsNegative()
             .andExpect(jsonPath("$.message")
                     .value("Quantity cannot be negative"));
 }
+
+@Test
+void createProduct_shouldReturnBadRequestWhenSkuAlreadyExists()
+        throws Exception {
+
+    when(productService.createProduct(any(Product.class)))
+            .thenThrow(new IllegalArgumentException(
+                    "Product with SKU already exists: LAP-10001"
+            ));
+
+    mockMvc.perform(
+                    post("/api/products")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                    {
+                        "name": "Dell Latitude 5440",
+                        "sku": "LAP-10001",
+                        "quantity": 10,
+                        "price": 899.99,
+                        "reorderLevel": 5
+                    }
+                    """)
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Bad Request"))
+            .andExpect(jsonPath("$.message")
+                    .value("Product with SKU already exists: LAP-10001"));
+}
 }

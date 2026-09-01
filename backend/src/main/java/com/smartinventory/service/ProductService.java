@@ -40,34 +40,42 @@ public class ProductService {
     }
 
     public Product createProduct(Product product) {
-        if (productRepository.existsBySku(product.getSku())) {
-            throw new RuntimeException(
-                    "Product with SKU already exists: " + product.getSku()
-            );
-        }
-
-        return productRepository.save(product);
+    if (productRepository.existsBySku(product.getSku())) {
+        throw new IllegalArgumentException(
+                "Product with SKU already exists: " + product.getSku()
+        );
     }
+
+    return productRepository.save(product);
+}
 
     public Product updateProduct(Long id, Product updatedProduct) {
-        Product existingProduct = getProductById(id);
+    Product existingProduct = getProductById(id);
 
-        existingProduct.setName(updatedProduct.getName());
-        existingProduct.setSku(updatedProduct.getSku());
-        existingProduct.setDescription(updatedProduct.getDescription());
-        existingProduct.setQuantity(updatedProduct.getQuantity());
-        existingProduct.setPrice(updatedProduct.getPrice());
-        existingProduct.setReorderLevel(updatedProduct.getReorderLevel());
-
-        existingProduct.setWarehouse(updatedProduct.getWarehouse());
-        existingProduct.setZone(updatedProduct.getZone());
-        existingProduct.setAisle(updatedProduct.getAisle());
-        existingProduct.setRack(updatedProduct.getRack());
-        existingProduct.setShelf(updatedProduct.getShelf());
-        existingProduct.setBin(updatedProduct.getBin());
-
-        return productRepository.save(existingProduct);
+    if (productRepository.existsBySkuAndIdNot(
+            updatedProduct.getSku(), id)) {
+        throw new IllegalArgumentException(
+                "Product with SKU already exists: "
+                        + updatedProduct.getSku()
+        );
     }
+
+    existingProduct.setName(updatedProduct.getName());
+    existingProduct.setSku(updatedProduct.getSku());
+    existingProduct.setDescription(updatedProduct.getDescription());
+    existingProduct.setQuantity(updatedProduct.getQuantity());
+    existingProduct.setPrice(updatedProduct.getPrice());
+    existingProduct.setReorderLevel(updatedProduct.getReorderLevel());
+
+    existingProduct.setWarehouse(updatedProduct.getWarehouse());
+    existingProduct.setZone(updatedProduct.getZone());
+    existingProduct.setAisle(updatedProduct.getAisle());
+    existingProduct.setRack(updatedProduct.getRack());
+    existingProduct.setShelf(updatedProduct.getShelf());
+    existingProduct.setBin(updatedProduct.getBin());
+
+    return productRepository.save(existingProduct);
+}
 
     public void deleteProduct(Long id) {
         Product existingProduct = getProductById(id);

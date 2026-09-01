@@ -243,4 +243,54 @@ void issueStock_shouldAllowIssuingEntireAvailableStock() {
     verify(productRepository).save(product);
     verify(stockMovementRepository).save(any(StockMovement.class));
 }
+
+@Test
+void createProduct_shouldRejectDuplicateSku() {
+    Product product = new Product();
+    product.setName("Dell Latitude 5440");
+    product.setSku("LAP-10001");
+
+    when(productRepository.existsBySku("LAP-10001"))
+            .thenReturn(true);
+
+    IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> productService.createProduct(product)
+    );
+
+    assertEquals(
+            "Product with SKU already exists: LAP-10001",
+            exception.getMessage()
+    );
+
+    verify(productRepository, never()).save(any(Product.class));
+}
+
+@Test
+void updateProduct_shouldRejectDuplicateSku() {
+    Product existingProduct = new Product();
+    existingProduct.setId(2L);
+    existingProduct.setSku("LAP-10001");
+
+    Product updatedProduct = new Product();
+    updatedProduct.setSku("LAP-10002");
+
+    when(productRepository.findById(2L))
+            .thenReturn(Optional.of(existingProduct));
+
+    when(productRepository.existsBySkuAndIdNot("LAP-10002", 2L))
+            .thenReturn(true);
+
+    IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> productService.updateProduct(2L, updatedProduct)
+    );
+
+    assertEquals(
+            "Product with SKU already exists: LAP-10002",
+            exception.getMessage()
+    );
+
+    verify(productRepository, never()).save(any(Product.class));
+}
 }
