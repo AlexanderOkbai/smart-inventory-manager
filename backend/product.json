@@ -1,0 +1,14 @@
+﻿{
+  "name": "Dell Latitude 5440",
+  "sku": "LAP-10001",
+  "description": "Business laptop for warehouse operations",
+  "quantity": 25,
+  "price": 899.99,
+  "reorderLevel": 5,
+  "warehouse": "Edmonton Main",
+  "zone": "A",
+  "aisle": "07",
+  "rack": "R03",
+  "shelf": "S04",
+  "bin": "B12"
+}
