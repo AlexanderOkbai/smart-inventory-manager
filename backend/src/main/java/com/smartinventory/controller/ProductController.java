@@ -1,12 +1,11 @@
 package com.smartinventory.controller;
+
 import jakarta.validation.Valid;
 import com.smartinventory.dto.StockRequest;
 import com.smartinventory.entity.Product;
-import com.smartinventory.entity.StockMovement;
 import com.smartinventory.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
 
 import java.util.List;
 
@@ -37,17 +36,17 @@ public class ProductController {
     }
 
     @PostMapping
-@ResponseStatus(HttpStatus.CREATED)
-public Product createProduct(@Valid @RequestBody Product product) {
-    return productService.createProduct(product);
-}
+    @ResponseStatus(HttpStatus.CREATED)
+    public Product createProduct(@Valid @RequestBody Product product) {
+        return productService.createProduct(product);
+    }
 
     @PutMapping("/{id}")
-public Product updateProduct(
-        @PathVariable Long id,
-        @Valid @RequestBody Product product) {
-    return productService.updateProduct(id, product);
-}
+    public Product updateProduct(
+            @PathVariable Long id,
+            @Valid @RequestBody Product product) {
+        return productService.updateProduct(id, product);
+    }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -68,8 +67,4 @@ public Product updateProduct(
             @Valid @RequestBody StockRequest request) {
         return productService.issueStock(id, request);
     }
-    @GetMapping("/{id}/movements")
-public List<StockMovement> getStockMovements(@PathVariable Long id) {
-    return productService.getStockMovements(id);
 }
-} 

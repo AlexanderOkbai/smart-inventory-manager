@@ -53,7 +53,7 @@ class StockMovementControllerTest {
                 .findByProductIdOrderByCreatedAtDesc(2L))
                 .thenReturn(List.of(movement));
 
-        mockMvc.perform(get("/api/products/2/stock/movements"))
+        mockMvc.perform(get("/api/products/2/movements"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].type").value("RECEIVE"))
                 .andExpect(jsonPath("$[0].quantity").value(10))
@@ -68,7 +68,7 @@ class StockMovementControllerTest {
         when(productRepository.existsById(999L))
                 .thenReturn(false);
 
-        mockMvc.perform(get("/api/products/999/stock/movements"))
+        mockMvc.perform(get("/api/products/999/movements"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message")

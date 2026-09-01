@@ -23,7 +23,7 @@ public class StockMovementController {
         this.productRepository = productRepository;
     }
 
-    @GetMapping("/{productId}/stock/movements")
+    @GetMapping("/{productId}/movements")
     public List<StockMovementResponse> getStockMovements(
             @PathVariable Long productId) {
 
