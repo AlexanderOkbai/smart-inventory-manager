@@ -51,6 +51,27 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$[0].name").value("Dell Latitude 5440"))
                 .andExpect(jsonPath("$[0].quantity").value(18));
     }
+@Test
+void searchProducts_shouldReturnMatchingProducts() throws Exception {
+    Product product = new Product();
+    product.setId(2L);
+    product.setName("Dell Latitude 5440");
+    product.setSku("LAP-10001");
+    product.setQuantity(18);
+
+    when(productService.searchProducts("Dell"))
+            .thenReturn(List.of(product));
+
+    mockMvc.perform(
+                    get("/api/products/search")
+                            .param("keyword", "Dell")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(2))
+            .andExpect(jsonPath("$[0].name").value("Dell Latitude 5440"))
+            .andExpect(jsonPath("$[0].sku").value("LAP-10001"))
+            .andExpect(jsonPath("$[0].quantity").value(18));
+}
 
     @Test
     void getProductById_shouldReturnProduct() throws Exception {

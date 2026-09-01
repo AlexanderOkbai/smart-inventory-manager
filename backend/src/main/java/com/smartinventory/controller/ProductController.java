@@ -24,6 +24,11 @@ public class ProductController {
     public List<Product> getAllProducts() {
         return productService.getAllProducts();
     }
+@GetMapping("/search")
+public List<Product> searchProducts(
+        @RequestParam String keyword) {
+    return productService.searchProducts(keyword);
+}
 
     @GetMapping("/low-stock")
     public List<Product> getLowStockProducts() {

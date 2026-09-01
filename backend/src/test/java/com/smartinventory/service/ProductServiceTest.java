@@ -1,5 +1,7 @@
 package com.smartinventory.service;
 
+import java.util.List;
+
 import com.smartinventory.dto.StockRequest;
 import com.smartinventory.entity.MovementType;
 import com.smartinventory.entity.Product;
@@ -366,6 +368,35 @@ void getAllProducts_shouldReturnAllProducts() {
     assertEquals("HP EliteBook", result.get(1).getName());
 
     verify(productRepository).findAll();
+}
+@Test
+void searchProducts_shouldReturnMatchingProducts() {
+
+    Product product = new Product();
+    product.setId(2L);
+    product.setName("Dell Latitude 5440");
+    product.setSku("LAP-10001");
+    product.setQuantity(18);
+
+    when(productRepository
+            .findByNameContainingIgnoreCaseOrSkuContainingIgnoreCase(
+                    "Dell",
+                    "Dell"
+            ))
+            .thenReturn(List.of(product));
+
+    List<Product> result = productService.searchProducts("Dell");
+
+    assertEquals(1, result.size());
+    assertEquals("Dell Latitude 5440", result.get(0).getName());
+    assertEquals("LAP-10001", result.get(0).getSku());
+    assertEquals(18, result.get(0).getQuantity());
+
+    verify(productRepository)
+            .findByNameContainingIgnoreCaseOrSkuContainingIgnoreCase(
+                    "Dell",
+                    "Dell"
+            );
 }
 @Test
 void getLowStockProducts_shouldReturnLowStockProducts() {

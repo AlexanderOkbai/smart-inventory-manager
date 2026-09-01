@@ -29,6 +29,13 @@ public class ProductService {
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
+public List<Product> searchProducts(String keyword) {
+    return productRepository
+            .findByNameContainingIgnoreCaseOrSkuContainingIgnoreCase(
+                    keyword,
+                    keyword
+            );
+}
 
     public List<Product> getLowStockProducts() {
         return productRepository.findLowStockProducts();
