@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import './App.css'
 
@@ -40,13 +41,15 @@ function getStatus(quantity, reorderLevel) {
 }
 
 function App() {
-  const [products, setProducts] = useState([])
+const [products, setProducts] = useState([])
+const [allProducts, setAllProducts] = useState([])
+const [searchKeyword, setSearchKeyword] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
-const [form, setForm] = useState(emptyForm)
-const [saving, setSaving] = useState(false)
-const [editingProductId, setEditingProductId] = useState(null)
+  const [form, setForm] = useState(emptyForm)
+  const [saving, setSaving] = useState(false)
+  const [editingProductId, setEditingProductId] = useState(null)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [movementType, setMovementType] = useState('')
   const [movementQuantity, setMovementQuantity] = useState('')
@@ -60,15 +63,16 @@ const [editingProductId, setEditingProductId] = useState(null)
     fetch(API_URL)
       .then((response) => {
         if (!response.ok) {
-          throw new Error("HTTP error: " + response.status)
+          throw new Error('HTTP error: ' + response.status)
         }
 
         return response.json()
       })
       .then((data) => {
-        setProducts(data)
-        setError('')
-      })
+  setAllProducts(data)
+  setProducts(data)
+  setError('')
+})
       .catch((err) => {
         console.error('Failed to load products:', err)
         setError('Unable to connect to the inventory server.')
@@ -77,27 +81,48 @@ const [editingProductId, setEditingProductId] = useState(null)
         setLoading(false)
       })
   }
- useEffect(() => {
-  fetch(API_URL)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('HTTP error: ' + response.status)
-      }
 
-      return response.json()
-    })
-    .then((data) => {
-      setProducts(data)
-      setError('')
-    })
-    .catch((err) => {
-      console.error('Failed to load products:', err)
-      setError('Unable to connect to the inventory server.')
-    })
-    .finally(() => {
-      setLoading(false)
-    })
-}, [])
+  function handleSearch() {
+    const keyword = searchKeyword.trim()
+
+    if (!keyword) {
+      loadProducts()
+      return
+    }
+
+    setLoading(true)
+    setError('')
+
+    fetch(
+      `${API_URL}/search?keyword=${encodeURIComponent(keyword)}`
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('HTTP error: ' + response.status)
+        }
+
+        return response.json()
+      })
+      .then((data) => {
+        setProducts(data)
+      })
+      .catch((err) => {
+        console.error('Failed to search products:', err)
+        setError('Unable to search the inventory.')
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }
+
+  function handleClearSearch() {
+    setSearchKeyword('')
+    loadProducts()
+  }
+
+  useEffect(() => {
+    loadProducts()
+  }, [])
 
   function openMovement(product, type) {
     setSelectedProduct(product)
@@ -188,6 +213,7 @@ const [editingProductId, setEditingProductId] = useState(null)
         setError('Unable to load stock movement history.')
       })
   }
+
   function handleChange(event) {
     const { name, value } = event.target
 
@@ -197,125 +223,126 @@ const [editingProductId, setEditingProductId] = useState(null)
     }))
   }
 
- function handleSubmit(event) {
-  event.preventDefault()
-  setSaving(true)
-  setError('')
+  function handleSubmit(event) {
+    event.preventDefault()
+    setSaving(true)
+    setError('')
 
-  const product = {
-    ...form,
-    quantity: Number(form.quantity),
-    price: Number(form.price),
-    reorderLevel: Number(form.reorderLevel),
+    const product = {
+      ...form,
+      quantity: Number(form.quantity),
+      price: Number(form.price),
+      reorderLevel: Number(form.reorderLevel),
+    }
+
+    const isEditing = editingProductId !== null
+
+    const url = isEditing
+      ? `${API_URL}/${editingProductId}`
+      : API_URL
+
+    const method = isEditing ? 'PUT' : 'POST'
+
+    fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(product),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('HTTP error: ' + response.status)
+        }
+
+        return response.json()
+      })
+      .then(() => {
+        setForm(emptyForm)
+        setShowForm(false)
+        setEditingProductId(null)
+        loadProducts()
+      })
+      .catch((err) => {
+        console.error('Failed to save product:', err)
+        setError(
+          isEditing
+            ? 'Unable to update the product.'
+            : 'Unable to create the product.',
+        )
+      })
+      .finally(() => {
+        setSaving(false)
+      })
   }
 
-  const isEditing = editingProductId !== null
-
-  const url = isEditing
-    ? `${API_URL}/${editingProductId}`
-    : API_URL
-
-  const method = isEditing ? 'PUT' : 'POST'
-
-  fetch(url, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(product),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('HTTP error: ' + response.status)
-      }
-
-      return response.json()
+  function handleEdit(product) {
+    setForm({
+      name: product.name || '',
+      sku: product.sku || '',
+      description: product.description || '',
+      quantity: product.quantity ?? 0,
+      price: product.price ?? '',
+      reorderLevel: product.reorderLevel ?? 5,
+      warehouse: product.warehouse || '',
+      zone: product.zone || '',
+      aisle: product.aisle || '',
+      rack: product.rack || '',
+      shelf: product.shelf || '',
+      bin: product.bin || '',
     })
-    .then(() => {
-      setForm(emptyForm)
-      setShowForm(false)
-      setEditingProductId(null)
-      loadProducts()
-    })
-    .catch((err) => {
-      console.error('Failed to save product:', err)
-      setError(
-        isEditing
-          ? 'Unable to update the product.'
-          : 'Unable to create the product.',
-      )
-    })
-    .finally(() => {
-      setSaving(false)
-    })
-}
 
-function handleEdit(product) {
-  setForm({
-    name: product.name || '',
-    sku: product.sku || '',
-    description: product.description || '',
-    quantity: product.quantity ?? 0,
-    price: product.price ?? '',
-    reorderLevel: product.reorderLevel ?? 5,
-    warehouse: product.warehouse || '',
-    zone: product.zone || '',
-    aisle: product.aisle || '',
-    rack: product.rack || '',
-    shelf: product.shelf || '',
-    bin: product.bin || '',
-  })
-
-  setEditingProductId(product.id)
-  setShowForm(true)
-  setError('')
-}
-
-function handleDelete(product) {
-  const confirmed = window.confirm(
-    `Delete "${product.name}"? This action cannot be undone.`,
-  )
-
-  if (!confirmed) {
-    return
+    setEditingProductId(product.id)
+    setShowForm(true)
+    setError('')
   }
 
-  setError('')
+  function handleDelete(product) {
+    const confirmed = window.confirm(
+      `Delete "${product.name}"? This action cannot be undone.`,
+    )
 
-  fetch(`${API_URL}/${product.id}`, {
-    method: 'DELETE',
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('HTTP error: ' + response.status)
-      }
+    if (!confirmed) {
+      return
+    }
 
-      loadProducts()
+    setError('')
+
+    fetch(`${API_URL}/${product.id}`, {
+      method: 'DELETE',
     })
-    .catch((err) => {
-      console.error('Failed to delete product:', err)
-      setError('Unable to delete the product.')
-    })
-}
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('HTTP error: ' + response.status)
+        }
 
+        loadProducts()
+      })
+      .catch((err) => {
+        console.error('Failed to delete product:', err)
+        setError('Unable to delete the product.')
+      })
+  }
 
-  const totalProducts = products.length
+  const totalProducts = allProducts.length
 
-  const lowStock = products.filter(
-    (product) =>
-      product.quantity > 0 &&
-      product.quantity <= product.reorderLevel,
-  ).length
+const lowStock = allProducts.filter(
+  (product) =>
+    product.quantity > 0 &&
+    product.quantity <= product.reorderLevel,
+).length
 
-  const outOfStock = products.filter(
-    (product) => product.quantity === 0,
-  ).length
+const outOfStock = allProducts.filter(
+  (product) => product.quantity === 0,
+).length
 
-  const totalInventoryValue = products.reduce(
-    (total, product) =>
-      total + Number(product.price || 0) * Number(product.quantity || 0),
-    0,
-  )
+const totalInventoryValue = allProducts.reduce(
+  (total, product) =>
+    total +
+    Number(product.price || 0) *
+      Number(product.quantity || 0),
+  0,
+)
 
   return (
     <div className="app">
@@ -362,6 +389,7 @@ function handleDelete(product) {
             </strong>
           </div>
         </section>
+
         {selectedProduct && (
           <section className="product-form-section">
             <div className="section-header">
@@ -371,6 +399,7 @@ function handleDelete(product) {
                     ? 'Receive Stock'
                     : 'Issue Stock'}
                 </h2>
+
                 <p>
                   {selectedProduct.name} — Current quantity:{' '}
                   {selectedProduct.quantity}
@@ -428,12 +457,17 @@ function handleDelete(product) {
           <section className="product-form-section">
             <div className="section-header">
               <div>
-                <h2>{editingProductId ? 'Edit Product' : 'Add Product'}</h2>
-<p>
-  {editingProductId
-    ? 'Update the product information below.'
-    : 'Enter the product information below.'}
-</p>
+                <h2>
+                  {editingProductId
+                    ? 'Edit Product'
+                    : 'Add Product'}
+                </h2>
+
+                <p>
+                  {editingProductId
+                    ? 'Update the product information below.'
+                    : 'Enter the product information below.'}
+                </p>
               </div>
             </div>
 
@@ -565,12 +599,12 @@ function handleDelete(product) {
                 <button
                   type="button"
                   className="secondary-button"
-                 onClick={() => {
-  setShowForm(false)
-  setForm(emptyForm)
-  setEditingProductId(null)
-  setError('')
-}}
+                  onClick={() => {
+                    setShowForm(false)
+                    setForm(emptyForm)
+                    setEditingProductId(null)
+                    setError('')
+                  }}
                 >
                   Cancel
                 </button>
@@ -581,10 +615,10 @@ function handleDelete(product) {
                   disabled={saving}
                 >
                   {saving
-  ? 'Saving...'
-  : editingProductId
-    ? 'Update Product'
-    : 'Save Product'}
+                    ? 'Saving...'
+                    : editingProductId
+                      ? 'Update Product'
+                      : 'Save Product'}
                 </button>
               </div>
             </form>
@@ -596,6 +630,31 @@ function handleDelete(product) {
             <div>
               <h2>Inventory</h2>
               <p>Manage your products and stock levels.</p>
+            </div>
+
+            <div className="search-box">
+              <input
+                type="text"
+                placeholder="Search by name or SKU..."
+                value={searchKeyword}
+                onChange={(event) =>
+                  setSearchKeyword(event.target.value)
+                }
+              />
+
+              <button
+                type="button"
+                onClick={handleSearch}
+              >
+                Search
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClearSearch}
+              >
+                Clear
+              </button>
             </div>
           </div>
 
@@ -612,101 +671,120 @@ function handleDelete(product) {
           )}
 
           {!loading && (
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>SKU</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                                        <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
+  <div className="table-container">
+    {products.length === 0 ? (
+      <div className="table-message">
+        {searchKeyword.trim()
+          ? `No products found for "${searchKeyword.trim()}".`
+          : 'No products available.'}
+      </div>
+    ) : (
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
 
-                <tbody>
-                  {products.map((product) => {
-                    const status = getStatus(
-                      product.quantity,
-                      product.reorderLevel,
-                    )
+        <tbody>
+          {products.map((product) => {
+            const status = getStatus(
+              product.quantity,
+              product.reorderLevel,
+            )
 
-                    return (
-                      <tr key={product.id}>
-                        <td>
-                          <strong>{product.name}</strong>
-                        </td>
-                        <td>{product.sku}</td>
-                        <td>{product.quantity}</td>
-                        <td>
-                          ${Number(product.price).toFixed(2)}
-                        </td>
-                                                <td>
-                          <span
-                            className={"status " + status.className}
-                          >
-                            {status.label}
-                          </span>
-                        </td>
+            return (
+              <tr key={product.id}>
+                <td>
+                  <strong>{product.name}</strong>
+                </td>
 
-                        <td>
-                          <div className="action-buttons">
-                            <button
-                              type="button"
-                              className="small-button"
-                              onClick={() =>
-                                openMovement(product, 'RECEIVE')
-                              }
-                            >
-                              Receive
-                            </button>
+                <td>{product.sku}</td>
 
-                            <button
-                              type="button"
-                              className="small-button"
-                              onClick={() =>
-                                openMovement(product, 'ISSUE')
-                              }
-                            >
-                              Issue
-                            </button>
+                <td>{product.quantity}</td>
 
-                            <button
-                              type="button"
-                              className="small-button"
-                              onClick={() =>
-                                loadMovements(product.id)
-                              }
-                            >
-                              History
-                            </button>
-<button
-  type="button"
-  className="small-button"
-  onClick={() => handleEdit(product)}
->
-  Edit
-</button>
+                <td>
+                  ${Number(product.price).toFixed(2)}
+                </td>
 
-<button
-  type="button"
-  className="small-button delete-button"
-  onClick={() => handleDelete(product)}
->
-  Delete
-</button>
+                <td>
+                  <span
+                    className={
+                      'status ' + status.className
+                    }
+                  >
+                    {status.label}
+                  </span>
+                </td>
 
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+                <td>
+                  <div className="action-buttons">
+                    <button
+                      type="button"
+                      className="small-button"
+                      onClick={() =>
+                        openMovement(product, 'RECEIVE')
+                      }
+                    >
+                      Receive
+                    </button>
+
+                    <button
+                      type="button"
+                      className="small-button"
+                      onClick={() =>
+                        openMovement(product, 'ISSUE')
+                      }
+                    >
+                      Issue
+                    </button>
+
+                    <button
+                      type="button"
+                      className="small-button"
+                      onClick={() =>
+                        loadMovements(product.id)
+                      }
+                    >
+                      History
+                    </button>
+
+                    <button
+                      type="button"
+                      className="small-button"
+                      onClick={() =>
+                        handleEdit(product)
+                      }
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      className="small-button delete-button"
+                      onClick={() =>
+                        handleDelete(product)
+                      }
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    )}
+  </div>
+)}
         </section>
+
         {showMovements && (
           <section className="inventory-section movement-history">
             <div className="section-header">
@@ -744,8 +822,10 @@ function handleDelete(product) {
                     {movements.map((movement) => (
                       <tr key={movement.id}>
                         <td>
-                          <strong>{movement.product.name}</strong>
-                        </td>
+  <strong>
+    {selectedProduct?.name}
+  </strong>
+</td>
 
                         <td>
                           <span
@@ -780,6 +860,3 @@ function handleDelete(product) {
 }
 
 export default App
-
-
-
